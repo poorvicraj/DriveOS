@@ -152,9 +152,6 @@ Vehicle telemetry and control commands are formally specified in the DriveOS CAN
 
 ## 7. Diagnostics & Fault Handling
 
-> [!IMPORTANT]
-> **Prototype Scope Notice**: *DriveOS implements an in-memory diagnostic prototype inspired by automotive diagnostic concepts; it does not claim full ISO 14229 (UDS) protocol stack compliance.*
-
 The diagnostic subsystem ([`DiagnosticService`](app/diagnostics/DiagnosticService.hpp)) provides a resilient fault-handling lifecycle:
 
 * **Prototype DTC Store**:
