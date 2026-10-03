@@ -2,15 +2,6 @@
 
 > **"DriveOS is a C++/Qt-based automotive IVI prototype that combines a premium touchscreen HMI with a simulated vehicle backend and CAN-oriented vehicle communication architecture."**
 
-[![CI Status](https://github.com/driveos-org/driveos/actions/workflows/ci.yml/badge.svg)](https://github.com/driveos-org/driveos/actions/workflows/ci.yml)
-[![Standard](https://img.shields.io/badge/C%2B%2B-20-blue.svg)](https://en.cppreference.com/w/cpp/20)
-[![Framework](https://img.shields.io/badge/Qt-6.6%20Quick%20%2F%20QML-41CD52.svg)](https://www.qt.io/)
-[![Architecture](https://img.shields.io/badge/Architecture-MVVM%20%7C%20HAL-indigo.svg)](docs/ARCHITECTURE.md)
-[![CAN](https://img.shields.io/badge/CAN-DBC%20%7C%20SocketCAN-orange.svg)](can/DBC_SPECIFICATION.md)
-[![Tests](https://img.shields.io/badge/Tests-67%20Passed-brightgreen.svg)](tests/)
-[![License](https://img.shields.io/badge/License-MIT-lightgrey.svg)](LICENSE)
-
----
 
 ## Table of Contents
 
@@ -21,14 +12,7 @@
 5. [Vehicle Simulation](#5-vehicle-simulation)
 6. [CAN & DBC Architecture](#6-can--dbc-architecture)
 7. [Diagnostics & Fault Handling](#7-diagnostics--fault-handling)
-8. [Automated Testing & CI](#8-automated-testing--ci)
-9. [Screenshots & UI Showcase](#9-screenshots--ui-showcase)
-10. [Build & Installation](#10-build--installation)
-11. [16-Step Demonstration Guide](#11-16-step-demonstration-guide)
-12. [Recruiter Technical Story](#12-recruiter-technical-story)
-13. [Limitations](#13-limitations)
-14. [Future Extensions](#14-future-extensions)
-15. [License & Acknowledgements](#15-license--acknowledgements)
+8. [Build & Installation](#10-build--installation)
 
 ---
 
@@ -183,50 +167,7 @@ The diagnostic subsystem ([`DiagnosticService`](app/diagnostics/DiagnosticServic
 
 ---
 
-## 8. Automated Testing & CI
-
-DriveOS enforces rigorous automated testing focused on high-value automotive behavior rather than artificial test-count numbers:
-
-```
-[==========] 67 tests ran. 67 passed, 0 failed.
-100% tests passed out of 1 (DriveOSFoundationTests)
-Total Test time = 0.36 sec
-```
-
-### Test Coverage Matrix ([`tests/unit/`](tests/unit/))
-1. **Unit Tests**: [`ClimateService`](app/domain/ClimateService.hpp) setpoint clamping, [`MediaService`](app/domain/MediaService.hpp) queue bounds, [`VehicleStateManager`](app/domain/VehicleStateManager.hpp) multi-observer callbacks, [`SafetyPolicy`](app/domain/SafetyPolicy.hpp) motion detection heuristics, and [`DiagnosticService`](app/diagnostics/DiagnosticService.hpp) DTC lifecycle.
-2. **Vehicle Simulation Tests**: Kinematic transitions, invalid signal rejection, stale signal degradation, and communication timeout watchdogs.
-3. **CAN Subsystem Tests**: Bit-level encoding/decoding, scale and offset validation, out-of-range protection, malformed DLC handling, and live loopback over Linux `vcan0`.
-4. **ViewModel Tests**: UI temperature formatting, degree symbol rendering, driving restriction safety gating, volume attenuation, and state dispatch.
-5. **QML Navigation Tests**: Headless offscreen QML engine instantiation verifying dock routing, back-stack history unwinding, and component load integrity.
-
-### Continuous Integration Pipeline ([`.github/workflows/ci.yml`](.github/workflows/ci.yml))
-* Runs on **Ubuntu 22.04** on every push and pull request.
-* Installs Qt 6 development libraries, CMake, Ninja, and CAN utilities.
-* Enforces code formatting via `clang-format` and static analysis via targeted `clang-tidy`.
-* Audits DBC database validity with `cantools`.
-* Initializes a virtual CAN interface (`vcan0`) and exercises frame transmission (`cansend`).
-* Builds all targets and executes `ctest` with headless display platform (`QT_QPA_PLATFORM=offscreen`).
-
----
-
-## 9. Screenshots & UI Showcase
-
-### Screenshot Checklist
-
-- [x] **Home Screen**: Large vehicle hero canvas, digital speedometer, gear pill, battery SOC, and three side summary cards.
-- [x] **Media Screen**: Modern audio cockpit with high-resolution artwork canvas, track metadata, queue list, and volume scrubber.
-- [x] **Climate Screen**: Hero temperature wheel with dual-zone passenger setpoints, particle airflow visualization, and seat heaters.
-- [x] **Vehicle Screen**: Overhead chassis with door closure toggles, drive modes, child lock, and lighting preferences.
-- [x] **Navigation Screen**: Procedural vector map canvas, turn-by-turn guidance card, speed limit indicator, and GNSS lock.
-- [x] **Fault State Experience**: Contextual amber/ruby warning banners, diagnostic fault summary, and safe-mode badges.
-- [x] **Driving Safety Restrictions**: Disabled closure controls and distraction warning toasts while vehicle is in motion.
-
-*(Screenshots can be captured directly from `driveos.exe` running at 1920×720 display resolution).*
-
----
-
-## 10. Build & Installation
+## 8. Build & Installation
 
 ### Prerequisites
 * **C++ Compiler**: GCC 11+ or MinGW-w64 GCC 13+ (with full C++20 support).
@@ -277,63 +218,3 @@ ctest --test-dir build --output-on-failure
 
 ---
 
-## 11. 16-Step Demonstration Guide
-
-Follow this sequence to evaluate the full depth of the DriveOS digital cockpit:
-
-1. **Launch DriveOS**: Run `.\run.ps1`. The application starts cold in $< 1.8\text{ s}$ and renders at 60 FPS in a 1920×720 wide automotive viewport.
-2. **Inspect Home**: Verify the vehicle status hero shows `PARKED`, gear `P`, battery SOC at $84.5\%$, and live clock/weather.
-3. **Open Media Screen**: Touch the **Media** icon on the bottom navigation dock. Notice the smooth $260\text{ ms}$ easing transition.
-4. **Interact with Media**: Click **Play/Pause** to toggle audio playback. Use the slider to scrub volume. Advance to the next track.
-5. **Open Climate Screen**: Touch the **Climate** icon on the bottom dock.
-6. **Adjust Temperature**: Touch the large **$+$** button on the hero temperature control to increment target from $22.0^\circ\text{C} \to 23.0^\circ\text{C}$. Cycle through airflow modes (`Windshield`, `Vent`, `Floor`, `Bi-Level`).
-7. **Return Home**: Touch the **Home** icon on the dock.
-8. **Verify Shared State Consistency**: Observe the **Climate Summary Card** on the Home screen now displays $23.0^\circ\text{C}$.
-9. **Open Vehicle Screen**: Touch the **Vehicle** icon on the dock. Notice the interactive vehicle chassis.
-10. **Switch Vehicle to DRIVING**: On the top context ribbon, select the **DRIVING** state pill.
-11. **Observe Driving Safety Restrictions**: The transmission shifts to `D`, speed accelerates to $64\text{ km/h}$, and deep configuration toggles (door locks, drive modes) are visually disabled. Clicking a locked toggle emits a toast: *"Unavailable while driving"*.
-12. **Open Navigation Screen**: Touch the **Navigation** icon on the dock.
-13. **Start Navigation**: Verify the procedural vector map updates with road grid and turn-by-turn guidance to *Mysuru Palace*.
-14. **Trigger Diagnostic Fault**: Return to the **Vehicle** screen and click **Inject Fault: HVAC Sensor Timeout**.
-15. **Inspect Degraded / Fault UI**: An amber warning toast appears: *"Diagnostic Fault Recorded: [B1080] Cabin HVAC temperature sensor timeout"*. The system status switches to degraded safe-mode.
-16. **Recover System**: Click **Clear All Faults & Reset to Normal**. The vehicle clears the DTC store, recovers to nominal communication health, and returns to `PARKED`.
-
----
-
-## 12. Recruiter Technical Story
-
-When reviewing DriveOS, automotive software hiring managers will find evidence of key production competencies:
-
-* **Separation of Presentation & Business Logic (MVVM)**: QML code is strictly declarative; no business calculations or state stores exist in JavaScript. ViewModels communicate via typed Qt signals and slots.
-* **Hardware Abstraction Layer (HAL)**: The [`VehicleDataInterface`](app/vehicle/VehicleDataInterface.hpp) pattern mirrors real OEM AUTOSAR / Adaptive architecture, allowing the UI to remain agnostic of whether telemetry comes from physical CAN, Ethernet SOME/IP, or synthetic simulation.
-* **Deterministic Simulation**: Built with continuous mathematical smoothing curves rather than discontinuous random numbers, demonstrating an understanding of automotive physical dynamics.
-* **Safety-First Software Engineering**: Implements driver distraction mitigation rules inspired by NHTSA and European automotive HMI guidelines.
-* **Automotive Communication**: First-principles DBC signal packing and unpacking with byte alignment, bit masks, signed scaling, and malformed payload protection.
-* **Embedded Resource Efficiency**: Real measured performance profile of $< 44\text{ MB}$ RAM footprint and 60 FPS GPU rasterization.
-
----
-
-## 13. Limitations
-
-To maintain engineering transparency, the following prototype boundaries are noted:
-* **Simulated Navigation**: Uses a lightweight procedural vector canvas rather than heavy commercial map APIs (e.g. Mapbox, Google Maps) or live GPS hardware.
-* **Prototype Diagnostics**: Implements an in-memory DTC repository inspired by diagnostic principles; does not implement a full ISO 14229 (UDS) / ISO 15765-2 (DoCAN) network transport stack.
-* **Software Safety UX**: The [`SafetyPolicy`](app/domain/SafetyPolicy.hpp) is a software distraction mitigation engine; it does not claim formal ISO 26262 functional safety ASIL certification.
-* **CAN Transceiver Hardware**: On Windows development machines, SocketCAN interfaces require virtual Linux loopback or WSL2 kernel support.
-
----
-
-## 14. Future Extensions
-
-* **Physical CAN Transceiver Integration**: Support for hardware adapters (PCAN-USB, CANable) over SLCAN or native SocketCAN.
-* **Vector Map Tile Engine**: Integration of open-source vector map tiles via MapLibre Native / QtLocation.
-* **Audio Playback Pipeline**: Streaming media decoding via GStreamer or native QtMultimedia audio backends.
-* **AUTOSAR Adaptive Bridge**: SOME/IP serialization layer for service-oriented automotive communication.
-
----
-
-## 15. License & Acknowledgements
-
-* **License**: Released under the [MIT License](LICENSE).
-* **Engineering Inspiration**: Designed following modern automotive UX principles (Apple CarPlay, Android Auto, modern OEM IVI systems).
-* **Engineering Team**: DriveOS Automotive Software Systems Group.
