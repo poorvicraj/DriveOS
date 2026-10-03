@@ -1,0 +1,44 @@
+<RCC>
+    <qresource prefix="/">
+        <file>Main.qml</file>
+        <file>AppShell.qml</file>
+        <file>theme/DesignSystem.qml</file>
+        <file>theme/qmldir</file>
+        <file>components/NavButton.qml</file>
+        <file>components/AppHeader.qml</file>
+        <file>components/BottomNavigation.qml</file>
+        <file>components/PrimaryButton.qml</file>
+        <file>components/SecondaryButton.qml</file>
+        <file>components/IconButton.qml</file>
+        <file>components/Toggle.qml</file>
+        <file>components/Slider.qml</file>
+        <file>components/StatusBadge.qml</file>
+        <file>components/MetricCard.qml</file>
+        <file>components/SectionHeader.qml</file>
+        <file>components/TemperatureControl.qml</file>
+        <file>components/MediaControl.qml</file>
+        <file>components/VehicleStatusCard.qml</file>
+        <file>components/WarningBanner.qml</file>
+        <file>components/EmptyState.qml</file>
+        <file>components/ErrorState.qml</file>
+        <file>components/VehicleHeroCard.qml</file>
+        <file>components/ClimateSummaryCard.qml</file>
+        <file>components/MediaSummaryCard.qml</file>
+        <file>components/NavSummaryCard.qml</file>
+        <file>components/VehicleStateSelector.qml</file>
+        <file>components/AlbumArtCanvas.qml</file>
+        <file>components/MediaQueueList.qml</file>
+        <file>components/MediaSourceSelector.qml</file>
+        <file>components/MediaProgressBar.qml</file>
+        <file>components/MediaVolumeControl.qml</file>
+        <file>components/HeroTemperatureControl.qml</file>
+        <file>components/ClimateAirflowCanvas.qml</file>
+        <file>components/VehicleChassisCanvas.qml</file>
+        <file>components/SimulatedMapCanvas.qml</file>
+        <file>views/HomeScreen.qml</file>
+        <file>views/MediaScreen.qml</file>
+        <file>views/ClimateScreen.qml</file>
+        <file>views/VehicleScreen.qml</file>
+        <file>views/NavigationScreen.qml</file>
+    </qresource>
+</RCC>

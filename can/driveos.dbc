@@ -1,0 +1,124 @@
+VERSION ""
+
+NS_ :
+    NS_DESC_
+    CM_
+    BA_DEF_
+    BA_
+    VAL_
+    CAT_DEF_
+    CAT_
+    FILTER
+    BA_DEF_DEF_
+    EV_DATA_
+    ENVVAR_DATA_
+    SGTYPE_
+    SGTYPE_VAL_
+    BA_DEF_SGTYPE_
+    BA_SGTYPE_
+    SIG_TYPE_REF_
+    VAL_TABLE_
+    SIG_GROUP_
+    SIG_VALTYPE_
+    SIGTYPE_VALTYPE_
+    BO_TX_BU_
+    BA_DEF_REL_
+    BA_REL_
+    BA_DEF_DEF_REL_
+    BU_SG_REL_
+    BU_EV_REL_
+    BU_BO_REL_
+    SG_MUL_VAL_
+
+BS_:
+
+BU_: HMI POWERTRAIN BODY CLIMATE DIAG
+
+BO_ 256 Powertrain_Status: 8 POWERTRAIN
+ SG_ Vehicle_Speed : 0|16@1+ (0.1,0) [0|250] "km/h" HMI
+ SG_ DriveMode : 16|2@1+ (1,0) [0|2] "" HMI
+ SG_ Gear : 18|2@1+ (1,0) [0|3] "" HMI
+
+BO_ 257 Battery_Status: 8 POWERTRAIN
+ SG_ Battery_SOC : 0|8@1+ (0.5,0) [0|100] "%" HMI
+ SG_ Vehicle_Range : 8|16@1+ (1,0) [0|800] "km" HMI
+ SG_ ChargingState : 24|3@1+ (1,0) [0|4] "" HMI
+ SG_ Battery_Temperature : 32|8@1+ (1,-40) [-40|85] "degC" HMI
+
+BO_ 512 Climate_Status: 8 CLIMATE
+ SG_ CabinTemperature : 0|8@1+ (0.5,-20) [-20|50] "degC" HMI
+ SG_ OutsideTemperature : 8|8@1+ (0.5,-40) [-40|60] "degC" HMI
+ SG_ Climate_AC : 16|1@1+ (1,0) [0|1] "" HMI
+ SG_ Climate_FanSpeed : 17|3@1+ (1,0) [0|5] "" HMI
+ SG_ Climate_TargetTemp : 24|8@1+ (0.5,0) [16|28] "degC" HMI
+
+BO_ 513 Climate_Command: 8 HMI
+ SG_ Climate_AC : 0|1@1+ (1,0) [0|1] "" CLIMATE
+ SG_ Climate_FanSpeed : 1|3@1+ (1,0) [0|5] "" CLIMATE
+ SG_ Climate_TargetTemp : 8|8@1+ (0.5,0) [16|28] "degC" CLIMATE
+
+BO_ 768 Body_Status: 8 BODY
+ SG_ Door_FL_Open : 0|1@1+ (1,0) [0|1] "" HMI
+ SG_ Door_FR_Open : 1|1@1+ (1,0) [0|1] "" HMI
+ SG_ Door_RL_Open : 2|1@1+ (1,0) [0|1] "" HMI
+ SG_ Door_RR_Open : 3|1@1+ (1,0) [0|1] "" HMI
+ SG_ Door_Locked : 4|1@1+ (1,0) [0|1] "" HMI
+ SG_ ExteriorLights : 5|2@1+ (1,0) [0|3] "" HMI
+
+BO_ 1024 Vehicle_Config: 8 BODY
+ SG_ IgnitionState : 0|2@1+ (1,0) [0|2] "" HMI
+ SG_ OperationalState : 2|3@1+ (1,0) [0|4] "" HMI
+
+BO_ 1025 Vehicle_Command: 8 HMI
+ SG_ Command_DriveMode : 0|2@1+ (1,0) [0|2] "" BODY
+ SG_ Command_DoorLock : 2|1@1+ (1,0) [0|1] "" BODY
+
+CM_ BO_ 256 "Powertrain operational telemetry broadcast by the traction inverter / VCU.";
+CM_ SG_ 256 Vehicle_Speed "Instantaneous vehicle longitudinal speed.";
+CM_ SG_ 256 DriveMode "Active vehicle powertrain personality profile: Eco, Normal, Sport.";
+CM_ SG_ 256 Gear "Transmission shift selector position.";
+
+CM_ BO_ 257 "High-voltage battery management system telemetry.";
+CM_ SG_ 257 Battery_SOC "Battery usable state of charge.";
+CM_ SG_ 257 Vehicle_Range "Estimated distance to empty based on current energy consumption.";
+CM_ SG_ 257 ChargingState "Status of physical charging inlet connection and power flow.";
+CM_ SG_ 257 Battery_Temperature "Battery pack temperature sensor telemetry.";
+
+CM_ BO_ 512 "Cabin thermal and ambient temperature sensor telemetry.";
+CM_ SG_ 512 CabinTemperature "Interior passenger cabin air temperature.";
+CM_ SG_ 512 OutsideTemperature "Ambient external air temperature.";
+CM_ SG_ 512 Climate_AC "Active air conditioning compressor state.";
+CM_ SG_ 512 Climate_FanSpeed "Active blower motor fan speed.";
+CM_ SG_ 512 Climate_TargetTemp "Active cabin setpoint temperature.";
+
+CM_ BO_ 513 "HVAC control setpoints requested by the HMI.";
+CM_ SG_ 513 Climate_AC "Air conditioning compressor enable command.";
+CM_ SG_ 513 Climate_FanSpeed "Blower motor speed level command: 0=Off, 1..5=Speed.";
+CM_ SG_ 513 Climate_TargetTemp "User desired cabin setpoint temperature command.";
+
+CM_ BO_ 768 "Body control module telemetry including closure latches and lighting.";
+CM_ SG_ 768 Door_FL_Open "Front Left door ajar sensor.";
+CM_ SG_ 768 Door_FR_Open "Front Right door ajar sensor.";
+CM_ SG_ 768 Door_RL_Open "Rear Left door ajar sensor.";
+CM_ SG_ 768 Door_RR_Open "Rear Right door ajar sensor.";
+CM_ SG_ 768 Door_Locked "Central vehicle door lock actuator status.";
+CM_ SG_ 768 ExteriorLights "Exterior lighting state: Off, Auto, Low Beam, High Beam.";
+
+CM_ BO_ 1024 "General vehicle master configuration and power state.";
+CM_ SG_ 1024 IgnitionState "Key / power state: Off, Accessory, On.";
+CM_ SG_ 1024 OperationalState "Operational state: Parked, Driving, Reverse, Charging, Fault.";
+
+CM_ BO_ 1025 "Vehicle configuration command dispatched from HMI.";
+CM_ SG_ 1025 Command_DriveMode "Target drive mode command requested by driver.";
+CM_ SG_ 1025 Command_DoorLock "Central lock request: 0=Unlock, 1=Lock.";
+
+VAL_ 256 DriveMode 0 "ECO" 1 "NORMAL" 2 "SPORT" ;
+VAL_ 256 Gear 0 "PARK" 1 "REVERSE" 2 "NEUTRAL" 3 "DRIVE" ;
+VAL_ 257 ChargingState 0 "DISCONNECTED" 1 "CONNECTING" 2 "CHARGING" 3 "COMPLETE" 4 "ERROR" ;
+VAL_ 512 Climate_AC 0 "OFF" 1 "ON" ;
+VAL_ 513 Climate_AC 0 "OFF" 1 "ON" ;
+VAL_ 768 ExteriorLights 0 "OFF" 1 "AUTO" 2 "LOW_BEAM" 3 "HIGH_BEAM" ;
+VAL_ 1024 IgnitionState 0 "OFF" 1 "ACC" 2 "ON" ;
+VAL_ 1024 OperationalState 0 "PARKED" 1 "DRIVING" 2 "REVERSE" 3 "CHARGING" 4 "FAULT" ;
+VAL_ 1025 Command_DriveMode 0 "ECO" 1 "NORMAL" 2 "SPORT" ;
+VAL_ 1025 Command_DoorLock 0 "UNLOCK" 1 "LOCK" ;

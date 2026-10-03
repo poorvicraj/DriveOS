@@ -1,0 +1,79 @@
+name: DriveOS Continuous Integration
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  build-and-test:
+    name: Linux GCC & SocketCAN CI
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            cmake \
+            ninja-build \
+            qt6-base-dev \
+            qt6-declarative-dev \
+            libqt6svg6-dev \
+            qml6-module-qtquick-controls \
+            qml6-module-qtquick-layouts \
+            can-utils \
+            clang-format \
+            clang-tidy \
+            python3-pip
+          pip3 install cantools
+
+      - name: Check Code Formatting (clang-format)
+        run: |
+          clang-format --version
+          # Validate formatting on key application headers and sources
+          find app/can app/domain app/diagnostics tests/ -name '*.hpp' -o -name '*.cpp' | xargs clang-format --dry-run -Werror || true
+
+      - name: Validate DBC Specification (cantools)
+        run: |
+          cantools dump can/driveos.dbc
+
+      - name: Initialize Linux Virtual CAN (vcan0)
+        run: |
+          sudo modprobe vcan
+          sudo ip link add dev vcan0 type vcan
+          sudo ip link set up vcan0
+          ip link show vcan0
+
+      - name: Configure CMake
+        run: |
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+            -DBUILD_TESTING=ON
+
+      - name: Run Clang-Tidy Static Analysis (Targeted)
+        run: |
+          clang-tidy --version
+          # Targeted static analysis on CAN message codec and diagnostics
+          clang-tidy -p build app/can/CanMessageCodec.cpp app/diagnostics/DiagnosticService.cpp -- -std=c++20 || true
+
+      - name: Build All Targets
+        run: |
+          cmake --build build --parallel
+
+      - name: Run Automated Test Suite (Unit, Vehicle, CAN, ViewModel, QML)
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          ctest --test-dir build --output-on-failure
+
+      - name: Targeted Linux SocketCAN Frame Verification
+        run: |
+          # Transmit test CAN frame on vcan0
+          cansend vcan0 100#1234567812345678

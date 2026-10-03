@@ -1,0 +1,3 @@
+@echo off
+echo Starting DriveOS Automotive Digital Cockpit...
+powershell -NoExit -ExecutionPolicy Bypass -Command ". .\env.ps1; .\build\driveos.exe"
