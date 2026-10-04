@@ -3,14 +3,15 @@
     DriveOS Automated All-in-One Installer & Setup Script for Windows
 .DESCRIPTION
     Fully automated installation, environment setup, dependency resolution,
-    build compilation, test verification, and standalone runtime deployment for DriveOS.
+    toolchain acquisition, build compilation, test verification, and standalone runtime deployment.
 #>
 
 param (
     [switch]$NoBuild,
     [switch]$NoTest,
     [switch]$NoDeploy,
-    [switch]$Launch
+    [switch]$Launch,
+    [switch]$ForceDownloadTools
 )
 
 $ErrorActionPreference = "Stop"
@@ -24,45 +25,170 @@ Write-Host "Root Directory: $ProjectRoot" -ForegroundColor DarkGray
 Write-Host ""
 
 # -----------------------------------------------------------------------------
+# HELPER: Detect Real Python (ignoring WindowsApps store shims)
+# -----------------------------------------------------------------------------
+function Get-RealPython {
+    # Check standard Python installation directories first
+    $localPyDirs = @(
+        "$env:LOCALAPPDATA\Programs\Python",
+        "C:\Python313", "C:\Python312", "C:\Python311", "C:\Python310"
+    )
+    foreach ($dir in $localPyDirs) {
+        if (Test-Path $dir) {
+            $sub = Get-ChildItem $dir -Directory -ErrorAction SilentlyContinue | Sort-Object Name -Descending | Select-Object -First 1
+            if ($sub -and (Test-Path "$($sub.FullName)\python.exe")) {
+                return "$($sub.FullName)\python.exe"
+            }
+            if (Test-Path "$dir\python.exe") {
+                return "$dir\python.exe"
+            }
+        }
+    }
+
+    # Check PATH
+    $pyCmd = Get-Command python.exe -ErrorAction SilentlyContinue
+    if ($pyCmd) {
+        if ($pyCmd.Source -notmatch "WindowsApps") {
+            return $pyCmd.Source
+        } else {
+            # Test if WindowsApps stub is actually functional
+            try {
+                $ver = & $pyCmd.Source --version 2>&1
+                if ($ver -match "Python 3\.") {
+                    return $pyCmd.Source
+                }
+            } catch {}
+        }
+    }
+
+    return $null
+}
+
+# -----------------------------------------------------------------------------
 # STEP 1: Toolchain Detection & Path Setup
 # -----------------------------------------------------------------------------
-Write-Host "[1/6] Detecting and configuring toolchain..." -ForegroundColor Yellow
+Write-Host "[1/6] Detecting toolchain (Qt 6.6.3, MinGW 13.1, Ninja, CMake)..." -ForegroundColor Yellow
 
 $QtBin = ""
 $MinGWBin = ""
 $NinjaBin = ""
+$CMakeBin = ""
 
 # 1. Check local tools directory (bundled/portable toolchain)
 if (Test-Path "$ProjectRoot\tools\Qt\6.6.3\mingw_64\bin\qmake.exe") {
     $QtBin = "$ProjectRoot\tools\Qt\6.6.3\mingw_64\bin"
     $MinGWBin = "$ProjectRoot\tools\Qt\Tools\mingw1310_64\bin"
-    $NinjaBin = "$ProjectRoot\tools\ninja"
-    Write-Host "  -> Found bundled Qt 6.6.3 MinGW toolchain in .\tools" -ForegroundColor Green
+    if (Test-Path "$ProjectRoot\tools\ninja") {
+        $NinjaBin = "$ProjectRoot\tools\ninja"
+    } elseif (Test-Path "$ProjectRoot\tools\Tools\Ninja") {
+        $NinjaBin = "$ProjectRoot\tools\Tools\Ninja"
+    }
 } elseif (Test-Path "C:\Qt\6.6.3\mingw_64\bin\qmake.exe") {
     $QtBin = "C:\Qt\6.6.3\mingw_64\bin"
     $MinGWBin = "C:\Qt\Tools\mingw1310_64\bin"
-    Write-Host "  -> Found system Qt 6.6.3 in C:\Qt" -ForegroundColor Green
 } else {
-    # Attempt to locate qmake in existing PATH
     $qmakeCmd = Get-Command qmake.exe -ErrorAction SilentlyContinue
     if ($qmakeCmd) {
         $QtBin = Split-Path -Parent $qmakeCmd.Source
-        Write-Host "  -> Found Qt in PATH: $QtBin" -ForegroundColor Green
+    }
+    $gccCmd = Get-Command g++.exe -ErrorAction SilentlyContinue
+    if ($gccCmd) {
+        $MinGWBin = Split-Path -Parent $gccCmd.Source
     }
 }
 
-if (-not $QtBin) {
-    Write-Host "WARNING: Qt 6.6+ MinGW toolchain not detected in standard paths." -ForegroundColor Red
-    Write-Host "Please ensure Qt 6 (with MinGW 64-bit) is installed or extracted into .\tools\Qt" -ForegroundColor Yellow
-} else {
+# -----------------------------------------------------------------------------
+# STEP 1B: Automatic Toolchain Download via aqtinstall (if tools missing)
+# -----------------------------------------------------------------------------
+if (-not $QtBin -or -not $MinGWBin -or $ForceDownloadTools) {
+    Write-Host ""
+    Write-Host "============================================================" -ForegroundColor Yellow
+    Write-Host " [NOTICE] Qt 6.6+ MinGW toolchain not detected on this PC.  " -ForegroundColor Yellow
+    Write-Host "============================================================" -ForegroundColor Yellow
+    Write-Host "DriveOS will automatically download and set up the official " -ForegroundColor Cyan
+    Write-Host "portable Qt 6.6.3 + MinGW 13.1 + Ninja toolchain into .\tools" -ForegroundColor Cyan
+    Write-Host ""
+
+    # Ensure real Python is available
+    $RealPy = Get-RealPython
+    if (-not $RealPy) {
+        Write-Host "Python 3 is required for automated toolchain setup." -ForegroundColor Yellow
+        $wingetCmd = Get-Command winget.exe -ErrorAction SilentlyContinue
+        if ($wingetCmd) {
+            Write-Host "Installing Python via winget..." -ForegroundColor Cyan
+            & winget install --id Python.Python.3.11 -e --silent --accept-package-agreements --accept-source-agreements
+            Start-Sleep -Seconds 3
+            $RealPy = Get-RealPython
+        }
+    }
+
+    if (-not $RealPy) {
+        Write-Host ""
+        Write-Host "============================================================" -ForegroundColor Red
+        Write-Host " [ACTION REQUIRED] Python 3 was not found on this system.   " -ForegroundColor Red
+        Write-Host "============================================================" -ForegroundColor Red
+        Write-Host "To install dependencies automatically:" -ForegroundColor White
+        Write-Host "  1. Install Python 3 from https://www.python.org/downloads/" -ForegroundColor Yellow
+        Write-Host "     (Make sure to check: 'Add python.exe to PATH')" -ForegroundColor Yellow
+        Write-Host "  2. Then double-click 'install.bat' again." -ForegroundColor Yellow
+        Write-Host ""
+        Write-Host "Alternatively, if you already have DriveOS working on your other PC," -ForegroundColor Cyan
+        Write-Host "simply copy the 'tools\' folder from that PC into this directory!" -ForegroundColor Cyan
+        Write-Host "============================================================" -ForegroundColor Red
+        Write-Host ""
+        exit 1
+    }
+
+    Write-Host "  -> Python active: $RealPy" -ForegroundColor Green
+    Write-Host "  -> Installing toolchain downloader (aqtinstall)..." -ForegroundColor Yellow
+    & $RealPy -m pip install --quiet --upgrade aqtinstall cantools
+
+    $ToolsDir = "$ProjectRoot\tools"
+    if (-not (Test-Path $ToolsDir)) {
+        New-Item -ItemType Directory -Path $ToolsDir -Force | Out-Null
+    }
+
+    # 1. Download Ninja if needed
+    $ninjaCheck = Get-Command ninja.exe -ErrorAction SilentlyContinue
+    if (-not $ninjaCheck -and -not (Test-Path "$ToolsDir\ninja\ninja.exe")) {
+        Write-Host "  -> Downloading Ninja build tool..." -ForegroundColor Yellow
+        & $RealPy -m aqt install-tool windows desktop tools_ninja qt.tools.ninja -O "$ToolsDir"
+        if (Test-Path "$ToolsDir\Tools\Ninja") {
+            New-Item -ItemType Directory -Path "$ToolsDir\ninja" -Force | Out-Null
+            Copy-Item "$ToolsDir\Tools\Ninja\*" "$ToolsDir\ninja\" -Recurse -Force -ErrorAction SilentlyContinue
+        }
+    }
+
+    # 2. Download MinGW 13.1.0 C++ compiler
+    if (-not (Test-Path "$ToolsDir\Qt\Tools\mingw1310_64\bin\g++.exe")) {
+        Write-Host "  -> Downloading MinGW 13.1.0 C++ compiler (official Qt package)..." -ForegroundColor Yellow
+        & $RealPy -m aqt install-tool windows desktop tools_mingw1310 qt.tools.win64_mingw1310 -O "$ToolsDir\Qt"
+    }
+
+    # 3. Download Qt 6.6.3 MinGW 64-bit base
+    if (-not (Test-Path "$ToolsDir\Qt\6.6.3\mingw_64\bin\qmake.exe")) {
+        Write-Host "  -> Downloading Qt 6.6.3 MinGW SDK (Quick, QML, Core, Gui, Svg)..." -ForegroundColor Yellow
+        & $RealPy -m aqt install-qt windows desktop 6.6.3 win64_mingw -O "$ToolsDir\Qt"
+    }
+
+    # Re-detect after automated installation
+    $QtBin = "$ToolsDir\Qt\6.6.3\mingw_64\bin"
+    $MinGWBin = "$ToolsDir\Qt\Tools\mingw1310_64\bin"
+    $NinjaBin = "$ToolsDir\ninja"
+    Write-Host ""
+    Write-Host "  -> Toolchain acquisition complete!" -ForegroundColor Green
+}
+
+# Set up environment variables
+if ($QtBin -and (Test-Path $QtBin)) {
     $env:QT_DIR = Split-Path -Parent $QtBin
     $env:CMAKE_PREFIX_PATH = $env:QT_DIR
-    
-    $PathsToAdd = @($QtBin, $MinGWBin, $NinjaBin)
-    foreach ($p in $PathsToAdd) {
-        if ($p -and (Test-Path $p) -and ($env:PATH -notmatch [regex]::Escape($p))) {
-            $env:PATH = "$p;$env:PATH"
-        }
+}
+
+$PathsToAdd = @($QtBin, $MinGWBin, $NinjaBin)
+foreach ($p in $PathsToAdd) {
+    if ($p -and (Test-Path $p) -and ($env:PATH -notmatch [regex]::Escape($p))) {
+        $env:PATH = "$p;$env:PATH"
     }
 }
 
@@ -74,7 +200,8 @@ if (-not (Test-Path $TempDir)) {
 $env:TEMP = $TempDir
 $env:TMP = $TempDir
 
-Write-Host "  Qt Directory:        $($env:QT_DIR)" -ForegroundColor DarkGray
+Write-Host "  Qt Directory:        $($env:QT_DIR)" -ForegroundColor Green
+Write-Host "  MinGW Compiler:      $MinGWBin" -ForegroundColor Green
 Write-Host "  CMake Prefix Path:   $($env:CMAKE_PREFIX_PATH)" -ForegroundColor DarkGray
 
 # -----------------------------------------------------------------------------
@@ -83,12 +210,12 @@ Write-Host "  CMake Prefix Path:   $($env:CMAKE_PREFIX_PATH)" -ForegroundColor D
 Write-Host ""
 Write-Host "[2/6] Checking Python & CAN tooling dependencies..." -ForegroundColor Yellow
 
-$PythonCmd = Get-Command python.exe -ErrorAction SilentlyContinue
-if ($PythonCmd) {
-    Write-Host "  -> Python detected: $($PythonCmd.Source)" -ForegroundColor Green
+$RealPython = Get-RealPython
+if ($RealPython) {
+    Write-Host "  -> Python detected: $RealPython" -ForegroundColor Green
     try {
         Write-Host "  -> Ensuring 'cantools' is installed..." -NoNewline
-        python -m pip install --quiet --upgrade cantools 2>$null
+        & $RealPython -m pip install --quiet --upgrade cantools 2>$null
         Write-Host " OK." -ForegroundColor Green
     } catch {
         Write-Host " (pip install skipped or offline)" -ForegroundColor DarkGray
@@ -108,6 +235,25 @@ if (-not (Test-Path $BuildDir)) {
     New-Item -ItemType Directory -Path $BuildDir -Force | Out-Null
 }
 
+# Verify CMake is present
+$cmakeCmd = Get-Command cmake.exe -ErrorAction SilentlyContinue
+if (-not $cmakeCmd) {
+    Write-Host "CMake not found in PATH. Checking tools directory..." -ForegroundColor Yellow
+    if (Test-Path "$ProjectRoot\tools\Tools\CMake_64\bin\cmake.exe") {
+        $env:PATH = "$ProjectRoot\tools\Tools\CMake_64\bin;$env:PATH"
+    } else {
+        # Check if Python can install cmake
+        if ($RealPython) {
+            Write-Host "Installing cmake via pip..." -ForegroundColor Cyan
+            & $RealPython -m pip install --quiet cmake
+            $pyDir = Split-Path -Parent $RealPython
+            if (Test-Path "$pyDir\Scripts\cmake.exe") {
+                $env:PATH = "$pyDir\Scripts;$env:PATH"
+            }
+        }
+    }
+}
+
 $CMakeArgs = @(
     "-B", "build",
     "-G", "Ninja",
@@ -118,6 +264,10 @@ $CMakeArgs = @(
 if ($env:CMAKE_PREFIX_PATH) {
     $CMakeArgs += "-DCMAKE_PREFIX_PATH=$($env:CMAKE_PREFIX_PATH)"
 }
+if ($MinGWBin -and (Test-Path "$MinGWBin\g++.exe")) {
+    $CMakeArgs += "-DCMAKE_CXX_COMPILER=$MinGWBin\g++.exe"
+    $CMakeArgs += "-DCMAKE_C_COMPILER=$MinGWBin\gcc.exe"
+}
 
 & cmake @CMakeArgs
 if ($LASTEXITCODE -ne 0) {
@@ -127,7 +277,7 @@ if ($LASTEXITCODE -ne 0) {
 Write-Host "  -> CMake configuration successful." -ForegroundColor Green
 
 # -----------------------------------------------------------------------------
-# STEP 4: Build & Compilation
+# STEP 4: Build & Compilation (-j 4 to prevent compiler memory exhaustion)
 # -----------------------------------------------------------------------------
 if (-not $NoBuild) {
     Write-Host ""
