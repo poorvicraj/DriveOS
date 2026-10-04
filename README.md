@@ -12,7 +12,7 @@
 5. [Vehicle Simulation](#5-vehicle-simulation)
 6. [CAN & DBC Architecture](#6-can--dbc-architecture)
 7. [Diagnostics & Fault Handling](#7-diagnostics--fault-handling)
-8. [Build & Installation](#10-build--installation)
+8. [Build & Installation](#8-build--installation)
 
 ---
 
@@ -172,7 +172,35 @@ The diagnostic subsystem ([`DiagnosticService`](app/diagnostics/DiagnosticServic
 * **Build Tools**: CMake 3.22+ and Ninja.
 * **Python (Optional for DBC validation)**: Python 3.9+ with `pip install cantools`.
 
-### Building on Windows (MinGW + Qt 6)
+### Quick Start: Automated One-Click Installation
+
+#### On Windows (Double-Click or PowerShell)
+Simply double-click **`install.bat`** (or execute via PowerShell):
+```powershell
+.\install.ps1
+```
+This automated engine automatically:
+1. Detects and configures the Qt 6.6+ and MinGW 13.1 toolchain.
+2. Resolves Python CAN tooling (`pip install cantools`).
+3. Generates CMake build files with Ninja.
+4. Compiles the application and test suites in parallel (`-j 4`).
+5. Executes all 67 automated test cases in GoogleTest.
+6. Bundles standalone Qt runtime DLLs and QML plugins (`windeployqt`).
+7. Generates a one-click launcher (**`Launch_DriveOS.bat`**).
+
+#### On Linux / Ubuntu (Native or WSL2)
+Execute the automated bash installation script:
+```bash
+chmod +x install.sh
+./install.sh
+```
+This script installs all system packages (`qt6-base-dev`, `qt6-declarative-dev`, `can-utils`, `ninja-build`), configures the virtual CAN bus (`vcan0`), compiles the project, runs tests, and creates `launch_driveos.sh`.
+
+---
+
+### Manual Build Instructions
+
+#### Building on Windows (MinGW + Qt 6)
 ```powershell
 # 1. Initialize environment (adjust Qt path if needed)
 . .\env.ps1
@@ -181,7 +209,7 @@ The diagnostic subsystem ([`DiagnosticService`](app/diagnostics/DiagnosticServic
 cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
 
 # 3. Build application and test suite
-cmake --build build --parallel
+cmake --build build -j 4
 
 # 4. Run automated tests
 ctest --test-dir build --output-on-failure
@@ -190,7 +218,7 @@ ctest --test-dir build --output-on-failure
 .\run.ps1
 ```
 
-### Building on Linux / Ubuntu (Native or WSL2)
+#### Building on Linux / Ubuntu (Native or WSL2)
 ```bash
 # 1. Install dependencies
 sudo apt-get update && sudo apt-get install -y \
