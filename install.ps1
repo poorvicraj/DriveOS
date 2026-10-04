@@ -299,6 +299,18 @@ if (-not $NoBuild) {
 if (-not $NoTest -and -not $NoBuild) {
     Write-Host ""
     Write-Host "[5/6] Running automated test suite (GoogleTest & CTest)..." -ForegroundColor Yellow
+    # Ensure offscreen platform plugin is available for headless test execution
+    $offscreenSrc = "$env:QT_DIR\plugins\platforms\qoffscreen.dll"
+    if (Test-Path $offscreenSrc) {
+        New-Item -ItemType Directory -Path "$BuildDir\platforms" -Force | Out-Null
+        Copy-Item $offscreenSrc "$BuildDir\platforms\" -Force -ErrorAction SilentlyContinue
+        New-Item -ItemType Directory -Path "$BuildDir\plugins\platforms" -Force | Out-Null
+        Copy-Item $offscreenSrc "$BuildDir\plugins\platforms\" -Force -ErrorAction SilentlyContinue
+    }
+    if ($env:QT_DIR -and (Test-Path "$env:QT_DIR\plugins")) {
+        $env:QT_PLUGIN_PATH = "$env:QT_DIR\plugins"
+    }
+
     $prevPlatform = $env:QT_QPA_PLATFORM
     $env:QT_QPA_PLATFORM = "offscreen"
     ctest --test-dir build --output-on-failure
