@@ -175,3 +175,52 @@ TEST(QmlNavigationTestSuite, QmlEngineLoadsAppShellAndControlsRespond) {
     // Clean up
     vehicleVM.setVehicleState(QStringLiteral("PARKED"));
 }
+
+// =============================================================================
+// 3. Dijkstra Shortest Path Navigation & User Location Tests
+// =============================================================================
+
+TEST(QmlNavigationTestSuite, DijkstraShortestPathAlgorithmAndRoadTraversal) {
+    SafetyPolicy safetyPolicy;
+    NavigationService navService(&safetyPolicy);
+
+    // Verify Road Nodes and Dijkstra calculation
+    const auto& nodes = navService.getRoadNodes();
+    EXPECT_GE(nodes.size(), 16);
+
+    // Compute shortest path from Node 0 (GSSSIETW) to Node 8 (Mysuru Palace)
+    auto path = navService.computeDijkstraShortestPath(0, 8);
+    EXPECT_TRUE(path.found);
+    EXPECT_GT(path.nodeIds.size(), 2);
+    EXPECT_EQ(path.nodeIds.front(), 0);
+    EXPECT_EQ(path.nodeIds.back(), 8);
+    EXPECT_GT(path.waypoints.size(), 5);
+    EXPECT_GT(path.totalDistanceKm, 0.0);
+
+    // Verify User Location is distinct from the moving vehicle
+    EXPECT_NEAR(navService.getUserLatitude(), 12.3551, 0.0001);
+    EXPECT_NEAR(navService.getUserLongitude(), 76.6186, 0.0001);
+    EXPECT_EQ(navService.getUserLocationTitle(), "Current Location of the User");
+
+    // Move vehicle along route: progress = 0.50
+    navService.setRouteProgress(0.50f);
+    EXPECT_FLOAT_EQ(navService.getRouteProgress(), 0.50f);
+    // Vehicle coordinates must have moved along the road away from user location
+    EXPECT_FALSE(navService.getCurrentLatitude() == navService.getUserLatitude());
+    EXPECT_FALSE(navService.getCurrentLongitude() == navService.getUserLongitude());
+    EXPECT_GT(navService.getVehicleSpeed(), 0.0);
+
+    // Test NavigationViewModel Dijkstra & User Location integration
+    NavigationViewModel navVM(&navService);
+    EXPECT_EQ(navVM.pathfindingAlgorithm(), QStringLiteral("Dijkstra's Shortest Path Algorithm"));
+    EXPECT_GT(navVM.shortestPathNodeCount(), 2);
+    EXPECT_GT(navVM.shortestPathDistanceKm(), 0.0);
+    EXPECT_NEAR(navVM.userLatitude(), 12.3551, 0.0001);
+    EXPECT_NEAR(navVM.userLongitude(), 76.6186, 0.0001);
+
+    // Update user location dynamically
+    navVM.setUserLocation(12.3410, 76.6268, QStringLiteral("Vontikoppal Temple Circle"), QStringLiteral("Temple Rd, Mysuru"));
+    EXPECT_NEAR(navVM.userLatitude(), 12.3410, 0.0001);
+    EXPECT_NEAR(navVM.userLongitude(), 76.6268, 0.0001);
+    EXPECT_EQ(navVM.userLocationTitle(), QStringLiteral("Vontikoppal Temple Circle"));
+}

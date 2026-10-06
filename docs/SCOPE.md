@@ -8,7 +8,7 @@
 This document defines the strict functional boundaries of **DriveOS**. To ensure high engineering quality, maintainability, and depth over superficial breadth, the project divides functionality into three explicit categories:
 1. **CORE SCOPE (Mandatory for Current Baseline)**
 2. **OPTIONAL FUTURE EXTENSIONS (Deferred Post-Baseline)**
-3. **OUT OF SCOPE (Strictly Prohibited — No Resume Keyword Bloat)**
+3. **OUT OF SCOPE (Strictly Prohibited — Guardrail Integrity)**
 
 ---
 
@@ -81,7 +81,7 @@ The following items are **explicitly excluded** to prevent superficial implement
 | Excluded Item | Justification for Exclusion |
 | :--- | :--- |
 | **Eclipse KUKSA / COVESA VSS** | High abstraction overhead; obscures low-level SocketCAN socket mechanics and DBC bit decoding. |
-| **Voice Assistants / LLMs / AI** | Unrelated to core automotive systems; introduces heavy network/compute overhead and nondeterministic behavior. |
+| **Cloud Voice Assistants / Conversational Agents** | Non-essential for core automotive cockpit systems; introduces heavy network/compute overhead and nondeterministic behavior. |
 | **Android Automotive OS (AAOS)** | Monolithic OS footprint requiring massive system resources; hides C++ networking behind Java VHAL. |
 | **Full AUTOSAR (Classic/Adaptive)** | Impossible to implement legitimately without licensed Tier-1 commercial toolchains (Vector, Elektrobit). |
 | **Full ISO 14229 UDS Stack** | Hundreds of services, complex multi-frame ISO-TP transport; creates schedule risk without adding architectural value. |

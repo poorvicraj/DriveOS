@@ -17,7 +17,7 @@ The project architecture has been deliberately simplified to focus engineering e
 ### Explicitly Excluded (Scope Protection):
 To prevent superficial implementation, distraction, and architectural decay, the following are strictly prohibited:
 * Eclipse KUKSA & COVESA VSS
-* Voice assistants, speech recognition, and AI engines
+* Cloud voice assistants and speech recognition services
 * Personalization profiles and multi-user cloud sync
 * Full AUTOSAR (Classic / Adaptive)
 * Android Automotive OS (AAOS)
@@ -76,9 +76,9 @@ The architecture defines four practical layers:
 ### A. Presentation Layer (`app/presentation/`, `app/qml/`)
 * **Responsibilities:**
   * Declarative UI components and screen layout containers in QML.
-  * Centralized design tokens and theming ([`app/qml/theme/DesignSystem.qml`](file:///d:/automotive/app/qml/theme/DesignSystem.qml)).
-  * Presentation state management via C++ ViewModels derived from [`BaseViewModel`](file:///d:/automotive/app/presentation/BaseViewModel.hpp).
-  * Centralized application routing via [`NavigationController`](file:///d:/automotive/app/presentation/NavigationController.hpp).
+  * Centralized design tokens and theming ([`app/qml/theme/DesignSystem.qml`](../app/qml/theme/DesignSystem.qml)).
+  * Presentation state management via C++ ViewModels derived from [`BaseViewModel`](../app/presentation/BaseViewModel.hpp).
+  * Centralized application routing via [`NavigationController`](../app/presentation/NavigationController.hpp).
   * Handling touch input and translating UI gestures into domain service commands.
 * **Strict Invariants:**
   * QML shall **never** decode CAN frames or unpack raw byte buffers.
@@ -89,11 +89,11 @@ The architecture defines four practical layers:
 
 ### B. Application & Domain Layer (`app/domain/`, `app/diagnostics/`)
 * **Responsibilities:**
-  * **VehicleService** ([`app/domain/VehicleService.hpp`](file:///d:/automotive/app/domain/VehicleService.hpp)): Manages powertrain state, drive mode selection, door lock toggles, and acts as the vehicle state coordinator (subsuming state management without unnecessary micro-abstractions).
-  * **ClimateService** ([`app/domain/ClimateService.hpp`](file:///d:/automotive/app/domain/ClimateService.hpp)): Manages cabin HVAC setpoint adjustments, fan speed levels, and AC compressor toggles.
-  * **MediaService** ([`app/domain/MediaService.hpp`](file:///d:/automotive/app/domain/MediaService.hpp)): Manages audio playback state, volume levels, and track metadata.
-  * **SafetyPolicy** ([`app/domain/SafetyPolicy.hpp`](file:///d:/automotive/app/domain/SafetyPolicy.hpp)): Evaluates vehicle state and centralizes driver distraction restrictions for in-motion vehicle operation.
-  * **DiagnosticService** ([`app/diagnostics/DiagnosticService.hpp`](file:///d:/automotive/app/diagnostics/DiagnosticService.hpp)): In-memory DTC store managing trouble codes, clearing faults, and reporting active/inactive status.
+  * **VehicleService** ([`app/domain/VehicleService.hpp`](../app/domain/VehicleService.hpp)): Manages powertrain state, drive mode selection, door lock toggles, and acts as the vehicle state coordinator (subsuming state management without unnecessary micro-abstractions).
+  * **ClimateService** ([`app/domain/ClimateService.hpp`](../app/domain/ClimateService.hpp)): Manages cabin HVAC setpoint adjustments, fan speed levels, and AC compressor toggles.
+  * **MediaService** ([`app/domain/MediaService.hpp`](../app/domain/MediaService.hpp)): Manages audio playback state, volume levels, and track metadata.
+  * **SafetyPolicy** ([`app/domain/SafetyPolicy.hpp`](../app/domain/SafetyPolicy.hpp)): Evaluates vehicle state and centralizes driver distraction restrictions for in-motion vehicle operation.
+  * **DiagnosticService** ([`app/diagnostics/DiagnosticService.hpp`](../app/diagnostics/DiagnosticService.hpp)): In-memory DTC store managing trouble codes, clearing faults, and reporting active/inactive status.
 * **Strict Invariants:**
   * Domain services do not know whether the vehicle is real, simulated, or connected via SocketCAN.
   * Domain logic is pure C++20 and compiles headlessly without GUI, OpenGL, or display server dependencies.
@@ -101,7 +101,7 @@ The architecture defines four practical layers:
 
 ### C. Vehicle Layer (`app/vehicle/`)
 * **Responsibilities:**
-  * Pure abstract Hardware Abstraction Layer (HAL): [`VehicleDataInterface`](file:///d:/automotive/app/vehicle/VehicleDataInterface.hpp).
+  * Pure abstract Hardware Abstraction Layer (HAL): [`VehicleDataInterface`](../app/vehicle/VehicleDataInterface.hpp).
   * **SimulatedVehicleBackend**: In-process deterministic vehicle kinematics and cabin thermal simulation.
   * **CANVehicleBackend**: Linux SocketCAN network adapter connecting to `vcan0`.
 * **Strict Invariants:**
@@ -111,7 +111,7 @@ The architecture defines four practical layers:
 
 ### D. Communication Layer (`can/`)
 * **Responsibilities:**
-  * Formal CAN Database specification: [`can/driveos.dbc`](file:///d:/automotive/can/driveos.dbc).
+  * Formal CAN Database specification: [`can/driveos.dbc`](../can/driveos.dbc).
   * DBC-related signal encoding and decoding (unpacking bitfields, applying linear scaling `Physical = Raw * Factor + Offset`).
   * Linux SocketCAN adapter running off the main UI thread.
 * **Strict Invariants:**
@@ -171,7 +171,7 @@ DriveOS enforces strict unidirectional and reactive data flow patterns:
 
 ## 5. Vehicle Data Interface (VDI)
 
-The [`VehicleDataInterface`](file:///d:/automotive/app/vehicle/VehicleDataInterface.hpp) is a small, practical Hardware Abstraction Layer (HAL). It avoids dozens of granular getters/setters in favor of a coherent vehicle state representation:
+The [`VehicleDataInterface`](../app/vehicle/VehicleDataInterface.hpp) is a small, practical Hardware Abstraction Layer (HAL). It avoids dozens of granular getters/setters in favor of a coherent vehicle state representation:
 
 ```cpp
 class VehicleDataInterface {
@@ -208,7 +208,7 @@ public:
 
 ## 6. Vehicle State Model & Operational States
 
-The vehicle state is represented by the coherent struct `VehicleState` ([`app/domain/VehicleState.hpp`](file:///d:/automotive/app/domain/VehicleState.hpp)).
+The vehicle state is represented by the coherent struct `VehicleState` ([`app/domain/VehicleState.hpp`](../app/domain/VehicleState.hpp)).
 
 ### Vehicle Signal Governance Rule
 > **Rule:** *The vehicle signal set shall contain only signals required by implemented requirements. Signals may be added or removed when justified by actual functionality. Avoid artificial vehicle complexity.*
@@ -266,11 +266,11 @@ DriveOS implements a clean dual-backend strategy enabled by `VehicleDataInterfac
 ### 2. CANVehicleBackend (Automotive Network Communication):
 * Connects to a standard Linux SocketCAN interface (such as virtual CAN `vcan0` or physical CAN transceiver).
 * Operates on a dedicated non-blocking worker thread, reading raw `struct can_frame` buffers.
-* Unpacks payload bitfields using signal specifications defined in [`can/driveos.dbc`](file:///d:/automotive/can/driveos.dbc).
+* Unpacks payload bitfields using signal specifications defined in [`can/driveos.dbc`](../can/driveos.dbc).
 * Monitors periodic message deadlines and tags signals as `STALE` if frames cease arriving.
 
 ### 3. Transparent Backend Swapping:
-* The application bootstrap ([`app/main.cpp`](file:///d:/automotive/app/main.cpp)) instantiates either `SimulatedVehicleBackend` or `CANVehicleBackend` and passes it via pointer to the domain services.
+* The application bootstrap ([`app/main.cpp`](../app/main.cpp)) instantiates either `SimulatedVehicleBackend` or `CANVehicleBackend` and passes it via pointer to the domain services.
 * Neither ViewModels nor QML screens have any compile-time or runtime knowledge of which backend is active.
 * The user interface behaves identically under both backends.
 
@@ -308,7 +308,7 @@ DriveOS adopts the Model-View-ViewModel (MVVM) architectural pattern:
 
 ## 9. Centralized Navigation Architecture
 
-Application navigation is strictly centralized in `NavigationController` ([`app/presentation/NavigationController.hpp`](file:///d:/automotive/app/presentation/NavigationController.hpp)):
+Application navigation is strictly centralized in `NavigationController` ([`app/presentation/NavigationController.hpp`](../app/presentation/NavigationController.hpp)):
 
 * **Top-Level Destinations:**
   1. **Home:** Primary instrumentation, speed gauge, battery ring, quick telemetry.
@@ -322,7 +322,7 @@ Application navigation is strictly centralized in `NavigationController` ([`app/
 
 ## 10. Design System Architecture
 
-All visual constants are centralized in `DesignSystem.qml` ([`app/qml/theme/DesignSystem.qml`](file:///d:/automotive/app/qml/theme/DesignSystem.qml)) as a QML singleton:
+All visual constants are centralized in `DesignSystem.qml` ([`app/qml/theme/DesignSystem.qml`](../app/qml/theme/DesignSystem.qml)) as a QML singleton:
 
 * **Dark Luxury Palette:** Obsidian background (`#090D16`), elevated surface (`#111827`), glass cards (`#1E293B`).
 * **Semantic Accents:** Electric Cyan (`#00E5FF`), Emerald Green (`#00E676`), Warning Amber (`#FFB300`), Critical Ruby (`#FF5252`).
@@ -335,7 +335,7 @@ All visual constants are centralized in `DesignSystem.qml` ([`app/qml/theme/Desi
 
 ## 11. Safety Policy & Driver Distraction Boundary
 
-The `SafetyPolicy` ([`app/domain/SafetyPolicy.hpp`](file:///d:/automotive/app/domain/SafetyPolicy.hpp)) centralizes driving distraction rules:
+The `SafetyPolicy` ([`app/domain/SafetyPolicy.hpp`](../app/domain/SafetyPolicy.hpp)) centralizes driving distraction rules:
 
 * **Motion Evaluation:** Vehicle is defined as "in motion" if `speed > 0.1 km/h` or transmission gear is in `DRIVE` / `REVERSE`.
 * **Permitted in Motion:** Primary dock navigation, basic HVAC temperature adjustments, basic media track skipping and volume.
@@ -377,7 +377,7 @@ DriveOS models signal validity and fault propagation across all layers:
 ## 13. Diagnostics Architecture
 
 Diagnostics is kept intentionally small and practical:
-* **Service:** `DiagnosticService` ([`app/diagnostics/DiagnosticService.hpp`](file:///d:/automotive/app/diagnostics/DiagnosticService.hpp)).
+* **Service:** `DiagnosticService` ([`app/diagnostics/DiagnosticService.hpp`](../app/diagnostics/DiagnosticService.hpp)).
 * **Structure:** In-memory DTC store managing trouble code records (`DtcRecord`: code, description, severity, status, timestamp).
 * **Capabilities:**
   * Query active and confirmed DTC records (`getActiveDtcs()`).
@@ -409,7 +409,7 @@ Diagnostics is kept intentionally small and practical:
       [ VehicleDataInterface ]
 ```
 
-* **DBC Specification:** [`can/driveos.dbc`](file:///d:/automotive/can/driveos.dbc) acts as the single source of truth for all CAN frame IDs (`0x100`, `0x101`, `0x200`, `0x201`, `0x300`, `0x400`), signals, bit lengths, and linear factors.
+* **DBC Specification:** [`can/driveos.dbc`](../can/driveos.dbc) acts as the single source of truth for all CAN frame IDs (`0x100`, `0x101`, `0x200`, `0x201`, `0x300`, `0x400`), signals, bit lengths, and linear factors.
 * **Boundary Rule:** Raw CAN bytes, masks, and frame IDs are strictly prohibited from leaking beyond the communication layer.
 * **Decoding Strategy:** Evaluated based on simplicity and maintainability. Avoids generated code unless clear engineering benefit is established.
 
@@ -418,7 +418,7 @@ Diagnostics is kept intentionally small and practical:
 ## 15. Repository Structure
 
 ```
-d:/automotive/
+driveos/
 ├── CMakeLists.txt                 # Modern CMake build configuration
 ├── README.md                      # Project overview and architecture guide
 ├── app/                           # Core application source tree
@@ -490,4 +490,4 @@ Every component in DriveOS must adhere to the following mandatory rules:
 7. **Testable Domain Logic**: Domain services, safety rules, and decoders must compile and execute headlessly without GUI dependencies.
 8. **Fail-Safe Degradation**: Communication faults or sensor errors degrade gracefully, presenting clear fallback states rather than freezing or crashing.
 9. **No Duplicate State**: Maintain state in one authoritative location; do not duplicate data across layers.
-10. **Zero Resume-Keyword Code**: Do not introduce code, protocols, or frameworks solely to claim keywords. Every line must serve a practical automotive purpose.
+10. **Zero Superfluous Abstractions**: Do not introduce code, protocols, or frameworks without functional necessity. Every line must serve a practical automotive purpose.

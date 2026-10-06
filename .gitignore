@@ -46,6 +46,7 @@ env/
 # IDEs & OS
 .vscode/
 .idea/
+.cache/
 *.swp
 *.swo
 *~
@@ -53,10 +54,13 @@ Thumbs.db
 [Dd]esktop.ini
 .DS_Store
 
-# Antigravity temporary
+# Temporary files
 scratch/
+~$*
+*.tmp
 
 # Local tools & downloads
 tools/
 temp/
 *.log
+

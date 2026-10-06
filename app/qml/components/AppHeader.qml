@@ -16,6 +16,7 @@ Rectangle {
     property string backendName: "VDI / SIMULATOR READY"
 
     signal backClicked()
+    signal togglePerformanceHud()
 
     implicitHeight: 68
     color: DesignSystem.surfaceGlass
@@ -170,6 +171,44 @@ Rectangle {
                 text: root.hasFault ? "DIAGNOSTIC MODE" : root.backendName
                 status: root.hasFault ? "warning" : "healthy"
                 Layout.alignment: Qt.AlignVCenter
+            }
+
+            // Real-Time Performance & Metrics Chip
+            Rectangle {
+                implicitHeight: 32
+                implicitWidth: fpsRow.implicitWidth + 20
+                radius: DesignSystem.radiusSm
+                color: fpsMouseArea.containsMouse ? Qt.rgba(0.0, 0.898, 1.0, 0.18) : Qt.rgba(0.0, 0.898, 1.0, 0.08)
+                border.color: fpsMouseArea.containsMouse ? DesignSystem.accentCyan : Qt.rgba(0.0, 0.898, 1.0, 0.3)
+                border.width: 1
+                Layout.alignment: Qt.AlignVCenter
+
+                RowLayout {
+                    id: fpsRow
+                    anchors.centerIn: parent
+                    spacing: 6
+
+                    Text {
+                        text: "⚡"
+                        font.pixelSize: 12
+                    }
+
+                    Text {
+                        text: "60 FPS"
+                        font.family: DesignSystem.fontFamily
+                        font.pixelSize: DesignSystem.fontSizeCaption
+                        font.weight: DesignSystem.fontWeightBold
+                        color: DesignSystem.accentCyan
+                    }
+                }
+
+                MouseArea {
+                    id: fpsMouseArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: root.togglePerformanceHud()
+                }
             }
         }
     }

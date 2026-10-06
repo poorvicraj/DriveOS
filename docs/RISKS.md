@@ -71,7 +71,7 @@ IMPACT │
 ---
 
 #### RSK-003: Scope Creep & Technology Bloat (Keyword Chasing)
-* **Description:** In student and fresher portfolio projects, there is a constant temptation to incorporate buzzwords (e.g., KUKSA, Eclipse VSS, GenAI, Voice Assistants, full AUTOSAR, Android Automotive). These additions inevitably lead to superficial "toy" implementations, broken builds, and diluted architectural focus.
+* **Description:** In software prototype projects, there is often a temptation to incorporate premature abstractions (e.g., KUKSA, Eclipse VSS, heavy cloud middleware, Android Automotive). These additions risk superficial implementations, broken builds, and diluted architectural focus.
 * **Impact:** High. Destroys the credibility of the project and causes incomplete, buggy code.
 * **Likelihood:** Medium.
 * **Mitigation Strategy:**
@@ -137,9 +137,9 @@ IMPACT │
 
 ---
 
-#### RSK-009: Misleading Compliance or Performance Claims
-* **Description:** In portfolio documentation, claiming functional safety (ISO 26262), cybersecurity (ISO 21434), or process certifications (ASPICE) will immediately trigger severe skepticism from automotive technical interviewers.
-* **Impact:** Medium. Damages candidate credibility during recruiter reviews.
+#### RSK-009: Misleading Compliance or Certification Claims
+* **Description:** Claiming production-level functional safety (ISO 26262), cybersecurity (ISO 21434), or process certifications (ASPICE) on an open prototype repository misrepresents project scope and compromises engineering integrity.
+* **Impact:** Medium. Reduces technical credibility and creates false compliance assumptions.
 * **Likelihood:** Medium.
 * **Mitigation Strategy:**
   1. Explicitly document the prototype status in `PROJECT_CHARTER.md` and repository README.

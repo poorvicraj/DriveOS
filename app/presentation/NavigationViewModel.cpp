@@ -15,6 +15,7 @@ NavigationViewModel::NavigationViewModel(domain::NavigationService* navService,
         m_navService->registerObserver([this]() {
             emit navStateChanged();
             emit destinationsChanged();
+            emit userLocationChanged();
         });
     }
 
@@ -38,6 +39,11 @@ QString NavigationViewModel::destinationCategory() const {
 QString NavigationViewModel::destinationIcon() const {
     if (!m_navService) return QStringLiteral("🏰");
     return QString::fromStdString(m_navService->getActiveDestination().icon);
+}
+
+QString NavigationViewModel::destinationAddress() const {
+    if (!m_navService) return QStringLiteral("Sayyaji Rao Rd, Mysuru, Karnataka");
+    return QString::fromStdString(m_navService->getActiveDestination().address);
 }
 
 QString NavigationViewModel::etaFormatted() const {
@@ -68,12 +74,127 @@ QString NavigationViewModel::turnIcon() const {
 }
 
 QString NavigationViewModel::routeStatus() const {
-    return QStringLiteral("Fastest Route via Outer Ring Road • Typical Traffic");
+    if (!m_navService) return QStringLiteral("Shortest Path via Dijkstra • Optimal Road Corridor");
+    return QStringLiteral("Shortest Path via Dijkstra (%1 nodes, %2 km)")
+        .arg(m_navService->getShortestPathNodeCount())
+        .arg(QString::number(m_navService->getShortestPathDistanceKm(), 'f', 1));
 }
 
 bool NavigationViewModel::isNavigating() const {
     if (!m_navService) return true;
     return m_navService->isNavigating();
+}
+
+int NavigationViewModel::speedLimit() const {
+    if (!m_navService) return 60;
+    return m_navService->getActiveDestination().speedLimitKmH;
+}
+
+int NavigationViewModel::batteryArrivalSoc() const {
+    if (!m_navService) return 82;
+    return m_navService->getActiveDestination().batteryArrivalSoc;
+}
+
+double NavigationViewModel::currentLatitude() const {
+    if (!m_navService) return 12.3410;
+    return m_navService->getCurrentLatitude();
+}
+
+double NavigationViewModel::currentLongitude() const {
+    if (!m_navService) return 76.6268;
+    return m_navService->getCurrentLongitude();
+}
+
+double NavigationViewModel::currentHeading() const {
+    if (!m_navService) return 45.0;
+    return m_navService->getCurrentHeading();
+}
+
+double NavigationViewModel::vehicleSpeed() const {
+    if (!m_navService) return 52.0;
+    return m_navService->getVehicleSpeed();
+}
+
+double NavigationViewModel::destinationLatitude() const {
+    if (!m_navService) return 12.3052;
+    return m_navService->getActiveDestination().latitude;
+}
+
+double NavigationViewModel::destinationLongitude() const {
+    if (!m_navService) return 76.6552;
+    return m_navService->getActiveDestination().longitude;
+}
+
+float NavigationViewModel::routeProgress() const {
+    if (!m_navService) return 0.25f;
+    return m_navService->getRouteProgress();
+}
+
+QVariantList NavigationViewModel::routeWaypoints() const {
+    QVariantList list;
+    if (!m_navService) return list;
+
+    const auto& wps = m_navService->getActiveDestination().waypoints;
+    for (const auto& wp : wps) {
+        QVariantMap point;
+        point[QStringLiteral("lat")] = wp.first;
+        point[QStringLiteral("lon")] = wp.second;
+        list.append(point);
+    }
+    return list;
+}
+
+double NavigationViewModel::userLatitude() const {
+    if (!m_navService) return 12.3551;
+    return m_navService->getUserLatitude();
+}
+
+double NavigationViewModel::userLongitude() const {
+    if (!m_navService) return 76.6186;
+    return m_navService->getUserLongitude();
+}
+
+QString NavigationViewModel::userLocationTitle() const {
+    if (!m_navService) return QStringLiteral("Current Location of the User");
+    return QString::fromStdString(m_navService->getUserLocationTitle());
+}
+
+QString NavigationViewModel::userLocationAddress() const {
+    if (!m_navService) return QStringLiteral("GSSSIETW Campus, KRS Road, Mysuru");
+    return QString::fromStdString(m_navService->getUserLocationAddress());
+}
+
+QString NavigationViewModel::pathfindingAlgorithm() const {
+    if (!m_navService) return QStringLiteral("Dijkstra's Shortest Path Algorithm");
+    return QString::fromStdString(m_navService->getPathfindingAlgorithm());
+}
+
+int NavigationViewModel::shortestPathNodeCount() const {
+    if (!m_navService) return 8;
+    return m_navService->getShortestPathNodeCount();
+}
+
+double NavigationViewModel::shortestPathDistanceKm() const {
+    if (!m_navService) return 8.4;
+    return m_navService->getShortestPathDistanceKm();
+}
+
+QVariantList NavigationViewModel::shortestPathNodeNames() const {
+    QVariantList list;
+    if (!m_navService) return list;
+
+    for (const auto& name : m_navService->getActiveShortestPath().nodeNames) {
+        list.append(QString::fromStdString(name));
+    }
+    return list;
+}
+
+QString NavigationViewModel::mapLayerType() const {
+    return m_mapLayerType;
+}
+
+bool NavigationViewModel::is3DMode() const {
+    return m_is3DMode;
 }
 
 float NavigationViewModel::destX() const {
@@ -101,8 +222,13 @@ QVariantList NavigationViewModel::destinations() const {
         map[QStringLiteral("name")] = QString::fromStdString(d.name);
         map[QStringLiteral("category")] = QString::fromStdString(d.category);
         map[QStringLiteral("icon")] = QString::fromStdString(d.icon);
+        map[QStringLiteral("address")] = QString::fromStdString(d.address);
         map[QStringLiteral("distance")] = QString::number(d.distanceKm, 'f', 1) + QStringLiteral(" km");
         map[QStringLiteral("eta")] = QString::number(d.etaMinutes) + QStringLiteral(" min");
+        map[QStringLiteral("latitude")] = d.latitude;
+        map[QStringLiteral("longitude")] = d.longitude;
+        map[QStringLiteral("speedLimit")] = d.speedLimitKmH;
+        map[QStringLiteral("batteryArrivalSoc")] = d.batteryArrivalSoc;
         map[QStringLiteral("isSelected")] = (i == activeIdx);
         list.append(map);
     }
@@ -141,6 +267,42 @@ void NavigationViewModel::stopNavigation() {
 void NavigationViewModel::toggleNavigation() {
     if (m_navService) {
         m_navService->toggleNavigation();
+    }
+}
+
+void NavigationViewModel::setMapLayerType(const QString& type) {
+    if (m_mapLayerType != type) {
+        m_mapLayerType = type;
+        emit mapConfigChanged();
+    }
+}
+
+void NavigationViewModel::setIs3DMode(bool enabled) {
+    if (m_is3DMode != enabled) {
+        m_is3DMode = enabled;
+        emit mapConfigChanged();
+    }
+}
+
+void NavigationViewModel::toggle3DMode() {
+    setIs3DMode(!m_is3DMode);
+}
+
+void NavigationViewModel::setRouteProgress(float progress) {
+    if (m_navService) {
+        m_navService->setRouteProgress(progress);
+    }
+}
+
+void NavigationViewModel::setUserLocation(double lat, double lon, const QString& title, const QString& address) {
+    if (m_navService) {
+        m_navService->setUserLocation(
+            lat,
+            lon,
+            title.isEmpty() ? "Current Location of the User" : title.toStdString(),
+            address.isEmpty() ? "GSSSIETW Campus, KRS Road, Mysuru" : address.toStdString()
+        );
+        emit userLocationChanged();
     }
 }
 

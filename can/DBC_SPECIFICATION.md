@@ -1,6 +1,6 @@
 # DriveOS CAN Database (DBC) Specification
 
-This document defines the formal CAN 2.0B network message catalog for the DriveOS Digital Cockpit, matching [`can/driveos.dbc`](file:///d:/automotive/can/driveos.dbc).
+This document defines the formal CAN 2.0B network message catalog for the DriveOS Digital Cockpit, matching [`can/driveos.dbc`](driveos.dbc).
 
 All frames utilize standard 11-bit CAN identifiers, little-endian (Intel) byte ordering, and an 8-byte Data Length Code (DLC = 8).
 

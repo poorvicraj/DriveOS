@@ -35,6 +35,7 @@
         <file>components/ClimateAirflowCanvas.qml</file>
         <file>components/VehicleChassisCanvas.qml</file>
         <file>components/SimulatedMapCanvas.qml</file>
+        <file>components/PerformanceHUD.qml</file>
         <file>views/HomeScreen.qml</file>
         <file>views/MediaScreen.qml</file>
         <file>views/ClimateScreen.qml</file>

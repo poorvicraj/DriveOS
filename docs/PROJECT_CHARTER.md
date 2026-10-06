@@ -11,7 +11,7 @@
 | **Document Version** | 1.0.0 |
 | **Status** | Approved — Phase 0 Baseline |
 | **Lead Software Architect** | Lead Software Architect & Senior Automotive HMI Engineer |
-| **Target Audience** | Engineering Leadership, Technical Recruiters, Automotive Software Reviewers |
+| **Target Audience** | Engineering Leadership, Systems Architects, Automotive Software Reviewers |
 | **Project Type** | Production-oriented automotive In-Vehicle Infotainment (IVI) & HMI prototype |
 
 ---
@@ -19,7 +19,7 @@
 ### 2. Project Identity & Disclaimer
 
 #### 2.1 Project Purpose
-DriveOS is an engineering portfolio project developed to demonstrate practical, production-oriented automotive software engineering capabilities. The project focuses on clean software architecture, modern C++ engineering, Qt/QML automotive HMI development, CAN bus communication, DBC-based signal decoding, vehicle state simulation, diagnostic fault handling, automated testing, and safety-aware UX design.
+DriveOS is an automotive digital cockpit software reference implementation developed to demonstrate practical, production-oriented automotive software engineering capabilities. The project focuses on clean software architecture, modern C++ engineering, Qt/QML automotive HMI development, CAN bus communication, DBC-based signal decoding, vehicle state simulation, diagnostic fault handling, automated testing, and safety-aware UX design.
 
 #### 2.2 Critical Regulatory & Compliance Disclaimer
 > [!IMPORTANT]
@@ -115,10 +115,10 @@ DriveOS provides a structured software prototype that solves these problems clea
 | **Automotive Software Engineer** | Developer maintaining domain logic, CAN bus decoders, or state machines. | Clean C++ APIs, modular services, strict dependency inversion, testable abstractions. |
 | **HMI / UI Developer** | Developer building QML views, transitions, and component styling. | Declarative QML, reactive ViewModel bindings, no backend or CAN logic leaking into QML. |
 | **Test & Validation Engineer** | Engineer verifying requirements traceability, fault handling, and test coverage. | Mockable interfaces, fault injection harness, deterministic unit and integration test suites. |
-| **Technical Recruiter / Hiring Lead** | Reviewer evaluating fresher candidates for automotive software engineering roles. | Objective evidence of architectural rigor, modern C++ conventions, CAN/SocketCAN proficiency, and professional engineering hygiene. |
+| **Automotive Systems Architect** | Reviewer evaluating architectural rigor, real-time safety constraints, and IPC hygiene. | Modular service contracts, clean separation of concerns, deterministic kinematic simulation, and DBC-compliant CAN communications. |
 
 > [!NOTE]
-> The **Driver** is the sole target of the User Experience (UX). Recruiters are evaluators of the code and architecture, **not** the target of the UI. No gimmick features or non-automotive UI widgets are permitted.
+> The **Driver** is the sole target of the User Experience (UX). Systems architects evaluate the code and architecture, **not** the UI ergonomics. No gimmick features or non-automotive UI widgets are permitted.
 
 ---
 
@@ -217,7 +217,7 @@ The core implementation scope is locked to the following 25 functional deliverab
 * **Principle 3 — Domain Logic in C++:** Presentation rules, boundary validations, unit conversions, and state transitions reside strictly in C++.
 * **Principle 4 — Single Responsibility:** Highly focused components (`SpeedProvider`, `ClimateService`, `SafetyPolicy`) rather than monolithic "God classes" like `VehicleManager`.
 * **Principle 5 — Testability First:** Business logic must be verified using unit test runners (`ctest`, `gtest`) without requiring X11/Wayland or physical hardware.
-* **Principle 6 — No Fake Abstractions:** Every interface must serve an actual operational or testing requirement. No design patterns implemented purely for visual resume decoration.
+* **Principle 6 — No Fake Abstractions:** Every interface must serve an actual operational or testing requirement. No gratuitous design patterns or speculative abstractions.
 * **Principle 7 — Defensive Fault Handling:** In an automotive context, silence or corrupted data is fatal. Missing data must be explicitly represented as `Stale` or `Invalid`.
 
 ---
@@ -308,7 +308,7 @@ Testing follows a pragmatic V-model structure ensuring every requirement maps di
 #### Strictly Out-of-Scope (No "Keyword Bloat"):
 To maintain software engineering integrity, the following technologies are **explicitly excluded** from the core project:
 - Eclipse KUKSA / COVESA VSS
-- Voice Assistants, Speech Recognition, Generative AI, Large Language Models
+- Voice Assistants, Speech Recognition, Remote Cloud APIs
 - Full AUTOSAR (Classic/Adaptive) stacks
 - Android Automotive OS (AAOS)
 - Full ISO 14229 UDS implementations (a lightweight in-memory DTC store is built)
@@ -328,7 +328,7 @@ Once the pure software architecture is mature and verified on Linux/CI, an optio
 As the engineering foundation of DriveOS, all future phases must strictly adhere to the following seventeen rules:
 
 1. **Quality Over Feature Count:** A small, impeccably tested, decoupled system is vastly superior to a sprawling, brittle codebase.
-2. **No Unnecessary Technologies:** Every library, protocol, and tool must have a concrete functional requirement. Never add dependencies for resume decoration.
+2. **No Unnecessary Technologies:** Every library, protocol, and tool must have a concrete functional requirement. Never add speculative dependencies.
 3. **No Fake Metrics:** Latency, CPU utilization, frame rates, and memory footprints must only be reported if measured with verifiable tools.
 4. **No Fake Compliance Claims:** Never claim ISO 26262, ASPICE, or AUTOSAR certification. Claim only relevant engineering practices.
 5. **No Hard-Coded Vehicle Communication in UI:** QML must never parse frames, read sockets, or manipulate hardware data.

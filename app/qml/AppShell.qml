@@ -62,6 +62,10 @@ Rectangle {
                 navigationController.goBack()
             }
         }
+
+        onTogglePerformanceHud: {
+            performanceHud.visible = !performanceHud.visible
+        }
     }
 
     // Central Viewport with Fluid Page Transitions
@@ -135,6 +139,37 @@ Rectangle {
             if (typeof navigationController !== "undefined") {
                 navigationController.navigateTo(index)
             }
+        }
+    }
+
+    // Keyboard Hotkey (F12) to toggle Real-Time Performance & Metrics HUD
+    Shortcut {
+        sequence: "F12"
+        onActivated: performanceHud.visible = !performanceHud.visible
+    }
+
+    // Performance & Engineering Metrics Overlay HUD
+    Rectangle {
+        id: performanceHudOverlay
+        anchors.fill: parent
+        color: Qt.rgba(0, 0, 0, 0.65)
+        z: 100
+        visible: performanceHud.visible
+        opacity: visible ? 1.0 : 0.0
+        Behavior on opacity { NumberAnimation { duration: 180 } }
+
+        MouseArea {
+            anchors.fill: parent
+            onClicked: performanceHud.visible = false
+        }
+
+        PerformanceHUD {
+            id: performanceHud
+            anchors.centerIn: parent
+            width: Math.min(parent.width - 48, 860)
+            height: Math.min(parent.height - 48, 520)
+            visible: false
+            onClosed: performanceHud.visible = false
         }
     }
 }

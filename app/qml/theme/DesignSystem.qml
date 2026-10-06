@@ -8,7 +8,7 @@ QtObject {
     // =========================================================================
     // THEME CONFIGURATION
     // =========================================================================
-    property bool isDarkTheme: false                        // Light automotive cockpit theme (Prompt 4 requirement)
+    property bool isDarkTheme: false                        // Light automotive cockpit theme
 
     // =========================================================================
     // COLOR PALETTE — CALM LUXURY AUTOMOTIVE COCKPIT

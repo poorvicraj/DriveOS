@@ -11,7 +11,7 @@ DriveOS features an intentionally compact, lightweight diagnostic subsystem desi
 
 ## 2. Diagnostic Architecture
 
-The diagnostics pipeline is centered on [`DiagnosticService`](file:///d:/automotive/app/diagnostics/DiagnosticService.hpp), backed by an in-memory Diagnostic Trouble Code (DTC) store, and linked directly to the canonical domain state and presentation layers:
+The diagnostics pipeline is centered on [`DiagnosticService`](../app/diagnostics/DiagnosticService.hpp), backed by an in-memory Diagnostic Trouble Code (DTC) store, and linked directly to the canonical domain state and presentation layers:
 
 ```
 [ Vehicle Telemetry / CAN / Simulator ]

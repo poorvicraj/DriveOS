@@ -2,7 +2,7 @@
 . .\env.ps1
 
 Write-Host "Starting driveos.exe..."
-$proc = Start-Process -FilePath "D:\automotive\build\driveos.exe" -PassThru
+$proc = Start-Process -FilePath ".\build\driveos.exe" -PassThru
 
 Start-Sleep -Seconds 3
 

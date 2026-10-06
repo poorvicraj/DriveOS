@@ -80,8 +80,8 @@ This document formalizes the architectural decisions, technology selections, and
 * **Role in System:** SocketCAN provides a POSIX socket interface (`AF_CAN`, `SOCK_RAW`) built directly into the Linux network subsystem. The application reads and writes standard CAN frames (`struct can_frame`) via standard non-blocking socket APIs.
 * **Alternatives Evaluated:**
   * *Proprietary CAN Driver APIs (Vector XL Driver, PCAN-Basic):* Proprietary, expensive, and require specific physical USB hardware dongles.
-  * *TCP/UDP Sockets / REST / WebSockets:* Unrealistic for internal vehicle bus communications. An automotive portfolio must demonstrate actual CAN frame handling.
-  * *SOME/IP / DDS:* Modern and relevant for Adaptive AUTOSAR and High-Performance Compute (HPC) domains, but excessively complex for a fresher portfolio project and distracts from core CAN/HMI foundations.
+  * *TCP/UDP Sockets / REST / WebSockets:* Unrealistic for internal vehicle bus communications. An automotive cockpit architecture must demonstrate actual CAN frame handling.
+  * *SOME/IP / DDS:* Modern and relevant for Adaptive AUTOSAR and High-Performance Compute (HPC) domains, but excessively complex for this scope and distracts from core CAN/HMI foundations.
 * **Why Rejected Technologies Were Excluded:** SocketCAN is open-source, standard across all embedded Linux platforms (AGL, Yocto), requires zero hardware thanks to `vcan`, and allows using standard Linux network utilities (`ip link`, `candump`, `cansend`).
 
 ---
@@ -127,7 +127,7 @@ This document formalizes the architectural decisions, technology selections, and
   * *Full ISO 14229 / ISO 15765-2 (DoCAN / ISO-TP):* Multi-frame transport segmentation, security access (0x27), routine control (0x31). Excessive complexity for an HMI prototype; risks schedule derailment.
   * *Full UDS Session State Machines:* Multi-layer protocol handlers and transport timers.
   * *OBD-II (ISO 15031 / SAE J1979):* Focused on internal combustion emissions; less representative of modern EV interior diagnostics.
-* **Why Rejected Technologies Were Excluded:** Full UDS implementations require months of protocol state-machine and transport layer coding. An intentionally lightweight `DiagnosticService` with a clean DTC store satisfies all product and portfolio diagnostic requirements while keeping the architecture small, stable, and easily maintainable.
+* **Why Rejected Technologies Were Excluded:** Full UDS implementations require months of protocol state-machine and transport layer coding. An intentionally lightweight `DiagnosticService` with a clean DTC store satisfies all product and diagnostic verification requirements while keeping the architecture small, stable, and easily maintainable.
 
 ---
 
@@ -140,7 +140,7 @@ This document formalizes the architectural decisions, technology selections, and
   * `GMock`: Mocks `VehicleDataInterface` to simulate packet loss, network drops, and corrupted values.
   * `Qt Test`: Validates Qt property notifications and ViewModel-to-QML bindings.
 * **Alternatives Evaluated:**
-  * *Catch2 / doctest:* Good modern C++ testing libraries, but GoogleTest is the overwhelming corporate standard across Wipro and Tier-1 automotive software teams.
+  * *Catch2 / doctest:* Good modern C++ testing libraries, but GoogleTest is the overwhelming industry standard across Tier-1 automotive software teams.
 
 ---
 
@@ -152,7 +152,7 @@ This document formalizes the architectural decisions, technology selections, and
   * `clang-format`: Enforces clean, consistent formatting across all `.cpp`, `.hpp`, and `.qml` files.
   * `clang-tidy`: Flags bugprone patterns, performance anti-patterns, modernize suggestions, and const-correctness violations.
 * **Alternatives Evaluated:**
-  * *SonarQube / Coverity:* Powerful commercial tools, but introduce server setup overhead unsuited for a lightweight GitHub portfolio repository.
+  * *SonarQube / Coverity:* Powerful commercial tools, but introduce server setup overhead unsuited for a lightweight standalone repository.
 
 ---
 
@@ -179,7 +179,7 @@ This document formalizes the architectural decisions, technology selections, and
 
 | Technology | Reason for Rejection |
 | :--- | :--- |
-| **Eclipse KUKSA / COVESA VSS** | High abstraction overhead; hides the actual CAN/SocketCAN mechanics that recruiters look for in freshers. |
+| **Eclipse KUKSA / COVESA VSS** | High abstraction overhead; obscures raw CAN/SocketCAN mechanics, arbitration IDs, and signal deserialization. |
 | **Voice / Speech / GenAI** | Irrelevant for core automotive software engineering; adds external API dependencies and nondeterministic behavior. |
 | **Full AUTOSAR (Classic / Adaptive)** | Requires commercial closed-source stacks (Vector Microsar, EB tresos) unavailable on open platforms. |
 | **Yocto Project / Poky** | Custom BSP generation requires massive disk space (100GB+) and multi-hour compilation times, detracting from C++/Qt engineering. |
